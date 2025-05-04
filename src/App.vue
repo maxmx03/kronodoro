@@ -6,7 +6,7 @@ import NotFound from '@/components/NotFound.vue'
 
 const routes = {
   '/': Pomodoro,
-  '/config': Config
+  '/config': Config,
 }
 
 const currentPath = ref(window.location.hash)
@@ -16,7 +16,8 @@ window.addEventListener('hashchange', () => {
 })
 
 const currentView = computed(() => {
-  return routes[currentPath.value.slice(1) || '/'] || NotFound
+  const route = currentPath.value.slice(1) || '/'
+  return routes[route as keyof typeof routes] || NotFound
 })
 </script>
 

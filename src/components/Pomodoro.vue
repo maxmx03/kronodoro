@@ -5,22 +5,22 @@ import { config } from '@/include/pomodoro'
 import { bgm } from '@/include/bgm'
 import { onBeforeUnmount, reactive, ref, watch, onMounted } from 'vue'
 
-const initialState = {
+const initialState: Pomodoro = {
   pomodoros: 0,
   session: 'focus',
   pause: false,
   running: false,
   notify: false,
 }
-const pomodoro = reactive<Pomodoro>({...initialState})
+const pomodoro = reactive<Pomodoro>({ ...initialState })
 let intervalId: number = 0
 const focusDuration: number = minutesToSeconds(config.focus)
 const shortBreakDuration: number = minutesToSeconds(config.shortBreak)
 const longBreakDuration: number = minutesToSeconds(config.longBreak)
 let clock = ref<number>(focusDuration)
 
-const focus = ref('')
-const rest = ref('')
+const focus = ref<HTMLAudioElement | null>(null)
+const rest = ref<HTMLAudioElement | null>(null)
 
 function minutesToSeconds(minutes: number): number {
   return minutes * 60
@@ -122,7 +122,7 @@ onMounted(() => {
 })
 
 watch(pomodoro, (value) => {
-  const bgmIsEmpty = focus.value == '' || rest.value == ''
+  const bgmIsEmpty = !focus.value || !rest.value
   //console.log(bgmIsEmpty ? 'bgm is empty' :  `bgm is not empty
   //because focus is ${focus.value} and rest is ${rest.value}`)
   if (bgmIsEmpty) return
@@ -130,22 +130,22 @@ watch(pomodoro, (value) => {
   const pauseFocusAudio = value.pause && value.session == 'focus'
   //console.log(pauseFocusAudio ? 'focus is paused' : `focus is not paused because value.pause is: ${value.pause} and
   //session is ${value.session}`)
-  if (pauseFocusAudio) focus.value.pause()
+  if (focus && pauseFocusAudio) focus.value?.pause()
 
   const startFocusAudio = value.session == 'focus' && value.running && !pauseFocusAudio
   //console.log(startFocusAudio ? 'focus is playing' : 'focus is not playing')
-  if (startFocusAudio) focus.value.play()
-  else focus.value.pause()
+  if (focus && startFocusAudio) focus.value?.play()
+  else focus?.value?.pause()
 
   const pauseRestAudio = value.pause && value.session != 'focus'
   //console.log(pauseRestAudio ? 'rest is paused' : `rest is not paused because value.pause is: ${value.pause} and
   //session is ${value.session}`)
-  if (pauseRestAudio) rest.value.pause()
+  if (rest && pauseRestAudio) rest.value?.pause()
 
   const startRestAudio = value.session != 'focus' && value.running && !pauseRestAudio
   //console.log(startRestAudio ? 'rest is playing' : 'rest is not playing')
-  if (startRestAudio) rest.value.play()
-  else rest.value.pause()
+  if (rest && startRestAudio) rest.value?.play()
+  else rest?.value?.pause()
 })
 
 const Music = (url: string) => {
@@ -163,25 +163,43 @@ const Music = (url: string) => {
     <Clock :time="timeToDegree(clock)" class="h-screen w-screen" />
     <nav class="h-24 flex items-center justify-center gap-5 text-white px-5">
       <div class="flex items-center justify-center gap-3">
-        <button @click="startPomodoro" v-if="!pomodoro.running && !pomodoro.pause" class="text-2xl uppercase">
+        <button
+          @click="startPomodoro"
+          v-if="!pomodoro.running && !pomodoro.pause"
+          class="text-2xl uppercase"
+        >
           start
         </button>
         <button
           @click="pausePomodoro"
           v-if="pomodoro.running && !pomodoro.pause"
           class="text-2xl uppercase"
-          >
+        >
           pause
         </button>
-        <button @click="startPomodoro" v-if="pomodoro.pause && !pomodoro.notify" class="text-2xl uppercase">resume</button>
-        <button @click="resetPomodoro" v-if="pomodoro.pause && !pomodoro.notify" class="text-2xl uppercase">reset</button>
-        <button @click="startPomodoro" v-if="pomodoro.notify" class="text-2xl uppercase">start {{ pomodoro.session }}?</button>
-        <button @click="skipSession" v-if="pomodoro.notify" class="text-2xl uppercase">skip {{ pomodoro.session }}?</button>
+        <button
+          @click="startPomodoro"
+          v-if="pomodoro.pause && !pomodoro.notify"
+          class="text-2xl uppercase"
+        >
+          resume
+        </button>
+        <button
+          @click="resetPomodoro"
+          v-if="pomodoro.pause && !pomodoro.notify"
+          class="text-2xl uppercase"
+        >
+          reset
+        </button>
+        <button @click="startPomodoro" v-if="pomodoro.notify" class="text-2xl uppercase">
+          start {{ pomodoro.session }}?
+        </button>
+        <button @click="skipSession" v-if="pomodoro.notify" class="text-2xl uppercase">
+          skip {{ pomodoro.session }}?
+        </button>
       </div>
       <div>
-        <a href="#/config" class="text-2xl uppercase">
-          config
-        </a>
+        <a href="#/config" class="text-2xl uppercase"> config </a>
       </div>
     </nav>
   </div>
