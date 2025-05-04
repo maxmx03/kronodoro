@@ -1,5 +1,7 @@
 # pomodoro
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7e8efd78-09ae-47d6-9a3c-f32b81757aa4/deploy-status)](https://app.netlify.com/sites/kronodoro/deploys)
+
 This template should help get you started developing with Vue 3 in Vite.
 
 ## Recommended IDE Setup
